@@ -27,12 +27,14 @@ def text_to_llm(llm_model: str, feature_model: type[BaseModel], document_text: s
             "Content-Type": "application/json",
             "api-key": os.getenv("AZURE_OPENAI_API_KEY")
         }
+    
 
     data = {
         "messages": [
             {
                 "role": "system",
-                "content": "Extract the features from this text."
+                "content": 
+                    "Extract the features from this text. "  
             },
             {
                 "role": "user",
@@ -60,6 +62,7 @@ def text_to_llm(llm_model: str, feature_model: type[BaseModel], document_text: s
 
         response_json = response.json()
         content = response_json.get("choices", [])[0].get("message", {}).get("content", "{}")
+        logger.info(f"Raw LLM response content: {content}")
         logger.info("Text processing completed.")
         return feature_model.model_validate_json(content)
 
