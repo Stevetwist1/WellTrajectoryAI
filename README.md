@@ -1,15 +1,18 @@
-# PlatMaster
+# WellTrajectoryAI
 
-A sophisticated OCR and AI-powered document processing system for extracting structured data from oil and gas well location plats. PlatMaster combines advanced computer vision (PaddleOCR) with large language models (Azure OpenAI) to automatically extract critical drilling location information from PDF plat documents.
+A sophisticated OCR and AI-powered directional survey processing system for extracting structured data from petroleum industry survey documents. WellTrajectoryAI combines advanced computer vision (PaddleOCR) with large language models to automatically extract directional survey data from PDF documents and generate well trajectory visualizations through automated FME integration.
 
 ## 🌟 Features
 
-- **Advanced OCR Processing**: Uses PaddleOCR with GPU acceleration for high-accuracy text detection and recognition
-- **AI-Powered Data Extraction**: Leverages Azure OpenAI GPT models to extract structured data from OCR results
-- **Multi-Format Support**: Processes PDF documents and converts them to images for analysis
-- **Visual Debugging**: Generates annotated images showing detected text regions with confidence scores
-- **Structured Output**: Extracts key drilling location data including coordinates, elevations, and survey points
-- **Batch Processing**: Processes multiple plat documents automatically
+- **Interactive Web Interface**: Modern Dash-based web application with Bootstrap UI for document processing and data validation
+- **Advanced OCR Processing**: Uses PaddleOCR with GPU acceleration for high-accuracy text detection and recognition from survey documents
+- **AI-Powered Data Extraction**: Leverages OpenAI GPT models to extract structured directional survey data from OCR results
+- **Multi-Page PDF Support**: Visual page selection and processing with drag-and-drop interface
+- **Real-Time Processing**: Live PDF upload, page selection, and immediate data extraction
+- **Multi-Format Export**: Generates JSON and CSV outputs for downstream processing and analysis
+- **FME Integration**: Automatic minimum curvature calculations and well trajectory generation through FME workbench automation
+- **ArcGIS Integration**: Direct export to ArcGIS geodatabase for spatial analysis and visualization
+- **Cross-Platform Workflow**: Linux-based processing with Windows FME integration via network shared folders
 
 ## 🚀 Quick Start
 
@@ -17,14 +20,16 @@ A sophisticated OCR and AI-powered document processing system for extracting str
 
 - Python 3.12+
 - CUDA-compatible GPU (optional, for faster OCR processing)
-- Azure OpenAI API access
+- OpenAI API access
+- Network access to Windows shared folder (for FME integration)
+- FME Desktop/Server (for trajectory calculations)
 
 ### Installation
 
 1. Clone the repository:
 ```bash
 git clone <repository-url>
-cd PlatMaster
+cd WellTrajectoryAI
 ```
 
 2. Create and activate a virtual environment:
@@ -38,130 +43,270 @@ source venv/bin/activate  # On Windows: venv\Scripts\activate
 pip install -r requirements.txt
 ```
 
-4. Set up environment variables:
+4. Install system dependencies:
+```bash
+# For PDF processing
+sudo apt install poppler-utils
+
+# For network share mounting
+sudo apt install cifs-utils
+
+# For GPU acceleration (optional)
+sudo apt install nvidia-utils-535
+```
+
+5. Set up environment variables:
 Create a `.env` file in the project root:
 ```env
-AZURE_OPENAI_API_KEY=your_api_key_here
-AZURE_OPENAI_API_KEY_EAST2=your_east2_api_key_here
+OPENAI_API_KEY=your_openai_api_key_here
+SHARED_FOLDER=/mnt/ulmfile_shared
+FME_WORKBENCH_PATH=\\ulmfile\Shared\GIS\operator_survey_line.fmw
+```
+
+### Network Share Setup
+
+1. Create mount point and credentials:
+```bash
+sudo mkdir -p /mnt/ulmfile_shared
+sudo nano /etc/cifs-credentials
+# Add your credentials:
+# username=your_username
+# password=your_password
+# domain=your_domain
+
+sudo chmod 600 /etc/cifs-credentials
+```
+
+2. Mount the shared folder:
+```bash
+sudo mount -t cifs "//server/share/path" /mnt/ulmfile_shared -o credentials=/etc/cifs-credentials,uid=$USER,gid=$USER
 ```
 
 ### Usage
 
-1. Place your PDF plat documents in the `plats/` directory
-2. Run the processing pipeline:
+1. Start the web application:
 ```bash
-python main.py
+python app.py
 ```
 
-3. Check the `output/` directory for results:
-   - `*_input.png`: Original PDF pages converted to images
-   - `*_boxes.png`: Images with OCR bounding boxes overlaid
-   - `*_ocr_merged.txt`: Raw OCR text output
-   - `*.json`: Structured extracted data
+2. Open your browser to `http://localhost:8050`
+
+3. Upload a PDF survey document using the drag-and-drop interface
+
+4. Select pages containing survey data
+
+5. Click "Process" to extract data using OCR and AI
+
+6. Review and edit the extracted metadata in the form
+
+7. Verify survey points in the interactive data table
+
+8. Export data:
+   - **Download JSON**: Raw structured data
+   - **Download CSV**: CSV export with automatic FME processing
+   - **Write to ArcGIS GDB**: Direct geodatabase integration
 
 ## 📊 Data Extraction
 
-PlatMaster extracts the following structured data from plat documents:
+WellTrajectoryAI extracts comprehensive directional survey data:
 
-### Location Points
-- **Surface Hole Location (SHL)**: Primary drilling location with elevation
-- **Penetration Point (PP)**: Point where drilling enters the target formation
-- **First Take Point (FTP)**: Beginning of horizontal drilling section
-- **Last Take Point (LTP)**: End of horizontal drilling section
-- **Bottom Hole Location (BHL)**: Final drilling destination
+### Survey Metadata
+- **UWI (Unique Well Identifier)**
+- **Operator and Vendor Information**
+- **Location Details** (Lease, County, Contact Info)
+- **Coordinate Systems** (Map Zone, Geodetic Datum)
+- **Surface Coordinates** (SHL X, SHL Y)
+- **Elevation Data** (Datum, Ground Level)
 
-### Coordinate Systems
-- Supports NAD 27 and NAD 83 coordinate systems
-- Automatically converts degree format to decimal format
-- Extracts Texas Central Zone coordinates
-- Handles various coordinate notation formats
+### Directional Survey Points
+- **Measured Depth (MD)**
+- **Inclination (INC)**
+- **Azimuth (AZI)**
+- **True Vertical Depth (TVD)**
+- **North-South Displacement (NS)**
+- **East-West Displacement (EW)**
 
 ### Sample Output
 ```json
 {
-  "elevation": "3025.3",
-  "surface_hole_location": {
-    "elevation": "3025.3",
-    "lat": "32.4208806",
-    "lon": "-102.3465417"
-  },
-  "penetration_point": {
-    "lat": "32.4221000",
-    "lon": "-102.3425111"
-  },
-  "first_take_point": {
-    "lat": "32.4232833",
-    "lon": "-102.3430583"
-  },
-  "last_take_point": {
-    "lat": "32.4506389",
-    "lon": "-102.3518278"
-  },
-  "bottom_hole_location": {
-    "lat": "32.4506389",
-    "lon": "-102.3518278"
-  }
+  "uwi": "42-475-3847300",
+  "operator": "University Lands",
+  "vendor": "Survey Company Name",
+  "lease_location": "Lease ABC-123",
+  "county": "Harris",
+  "shl_x": "1234567.89",
+  "shl_y": "9876543.21",
+  "datum_elevation": "1500.0",
+  "survey_points": [
+    {
+      "md": 0,
+      "inc": 0,
+      "azi": 0,
+      "tvd": 0,
+      "ns": 0,
+      "ew": 0
+    },
+    {
+      "md": 100,
+      "inc": 2.5,
+      "azi": 45.2,
+      "tvd": 99.8,
+      "ns": 10.2,
+      "ew": 15.3
+    }
+  ]
 }
 ```
 
 ## 🔧 Technical Architecture
 
-### Components
+### Web Application Stack
+- **Frontend**: Dash with Bootstrap Components
+- **Backend**: Python Flask server
+- **UI Components**: Interactive data tables, file upload, form validation
+- **Real-time Processing**: Live feedback and progress indicators
 
-1. **PDF Processing** (`pdf2image`): Converts PDF documents to high-resolution images
-2. **OCR Engine** (`PaddleOCR`): Detects and recognizes text with confidence scoring
-3. **AI Extraction** (`Azure OpenAI`): Uses structured prompts to extract meaningful data
-4. **Data Validation** (`Pydantic`): Ensures extracted data conforms to expected schemas
+### Data Processing Pipeline
+1. **PDF Upload**: Drag-and-drop interface with preview
+2. **Page Selection**: Visual page thumbnails with selection controls
+3. **OCR Processing**: PaddleOCR with GPU acceleration
+4. **AI Extraction**: Structured data extraction using OpenAI
+5. **Data Validation**: Interactive form editing and validation
+6. **Export Processing**: Multiple output formats and integrations
+
+### Integration Components
+- **FME Automation**: File-based trigger system for minimum curvature calculations
+- **ArcGIS Integration**: JSON export for geodatabase import
+- **Network Share**: Cross-platform file exchange for Windows integration
 
 ### OCR Configuration
-- Language: English
-- Device: GPU (fallback to CPU)
-- Text orientation: Disabled for better performance on structured documents
-- Document unwrapping: Disabled for plat-specific optimization
+```python
+OCR_MODEL = PaddleOCR(
+    device="gpu" if os.path.exists("/usr/bin/nvidia-smi") else "cpu",
+    lang="en",
+    use_textline_orientation=False,
+    use_doc_orientation_classify=False,
+    use_doc_unwarping=False
+)
+```
 
-### AI Model Integration
-- Primary model: GPT-4.1 (fine-tuned deployment)
-- Fallback model: Standard GPT-4
-- Response format: Structured JSON schema
-- Temperature: Deterministic (seed: 7779)
+## 🎯 Workflow Integration
+
+### Automated FME Processing
+1. **CSV Export**: Survey data saved as `latest_directional_survey.csv`
+2. **File Monitoring**: Windows batch script monitors for file changes
+3. **FME Execution**: Automatic workbench execution for minimum curvature calculations
+4. **Trajectory Generation**: 3D well path creation with spatial coordinates
+
+### FME Watcher Script
+```batch
+# fme_csv_watcher.bat - monitors CSV file for changes
+set "CSV_FILE=\\server\share\latest_directional_survey.csv"
+set "FME_WORKBENCH=\\server\share\operator_survey_line.fmw"
+"%FME_ENGINE%" "%FME_WORKBENCH%" --LOG_STANDARDOUT
+```
+
+### ArcGIS Geodatabase Integration
+- **Metadata Export**: Well information and coordinates
+- **Survey Data**: Directional survey points
+- **Spatial Integration**: Coordinate system handling and projection
+- **Visualization Ready**: Compatible with ArcGIS Pro and Portal
 
 ## 📁 Project Structure
 
 ```
-PlatMaster/
-├── main.py                 # Main processing pipeline
+WellTrajectoryAI/
+├── app.py                    # Main Dash web application
+├── main.py                   # Command-line processing pipeline
 ├── models/
-│   └── plat.py            # Pydantic data models
+│   ├── directionalsurvey.py  # Pydantic data models for surveys
+│   └── plat.py              # Pydantic data models for plats
 ├── services/
-│   └── llm.py             # Azure OpenAI integration
-├── plats/                 # Input PDF documents
-├── output/                # Generated results
-├── requirements.txt       # Python dependencies
-├── .env                   # Environment variables
-└── README.md             # This file
+│   └── llm.py               # OpenAI integration
+├── static/                  # Web application assets
+├── plats/                   # Input PDF documents
+├── output/                  # Processing results
+├── requirements.txt         # Python dependencies
+├── fme_csv_watcher.bat     # Windows FME monitoring script
+├── .env                    # Environment variables
+└── README.md               # This documentation
 ```
+
+## 🖥️ User Interface
+
+### Main Features
+- **📂 PDF Upload**: Drag-and-drop interface with file validation
+- **🖼️ Page Preview**: Visual thumbnails with selection controls
+- **⚙️ Processing Controls**: Real-time OCR and AI processing
+- **📝 Data Forms**: Interactive metadata editing and validation
+- **📊 Data Tables**: Editable survey point tables with sorting
+- **💾 Export Options**: Multiple format downloads and integrations
+- **🔄 Real-time Feedback**: Progress indicators and status messages
+
+### Responsive Design
+- **Bootstrap Components**: Modern, mobile-friendly interface
+- **Interactive Elements**: Hover effects, loading spinners, toast notifications
+- **Data Visualization**: Sortable tables with pagination
+- **Form Validation**: Real-time input validation and error handling
 
 ## 🔍 Debugging and Troubleshooting
 
-### Visual Debugging
-The system generates annotated images (`*_boxes.png`) that show:
-- Green bounding boxes around detected text regions
-- Red text labels with detected content and confidence scores
-- Visual verification of OCR accuracy
-
 ### Common Issues
 
-1. **Low OCR Confidence**: Check image quality and resolution
-2. **Missing Coordinates**: Verify plat format matches expected patterns
-3. **API Errors**: Confirm Azure OpenAI credentials and deployment names
-4. **GPU Issues**: System automatically falls back to CPU processing
+1. **Shared Folder Access**:
+```bash
+# Check mount status
+mount | grep ulmfile_shared
+# Test write permissions
+touch /mnt/ulmfile_shared/test_file.txt
+# Remount if needed
+sudo umount /mnt/ulmfile_shared
+sudo mount /mnt/ulmfile_shared
+```
 
-### Logging
-The system provides detailed logging for:
-- OCR processing progress
-- Text detection statistics
-- LLM API interactions
-- Error diagnosis
+2. **OCR Performance**:
+```bash
+# Check GPU availability
+nvidia-smi
+# Monitor memory usage
+htop
+# Adjust DPI for better accuracy vs speed
+```
+
+3. **FME Integration**:
+```bash
+# Verify CSV file creation
+ls -la /mnt/ulmfile_shared/latest_directional_survey.csv
+# Check FME logs on Windows
+```
+
+### Logging and Monitoring
+- **Application Logs**: Real-time processing feedback in web interface
+- **OCR Statistics**: Text detection confidence scores and processing times
+- **API Monitoring**: OpenAI request/response logging with token usage
+- **File System**: Shared folder access and permissions monitoring
+- **Export Status**: CSV and JSON generation with success/failure tracking
+
+### Visual Debugging
+The system generates:
+- **PDF Page Previews**: Visual thumbnails for page selection
+- **Processing Status**: Real-time feedback during OCR and AI processing
+- **Data Validation**: Interactive forms with error highlighting
+- **Export Confirmation**: Success/failure notifications with detailed messages
+
+## 🚀 Deployment
+
+### Production Setup
+1. **Server Configuration**: Linux server with GPU support
+2. **Network Access**: Reliable connection to Windows shared folder
+3. **Service Management**: Systemd service for automatic startup
+4. **Monitoring**: Log rotation and performance monitoring
+
+### Security Considerations
+- **Credential Management**: Secure API key and network credential storage
+- **File Permissions**: Proper shared folder access controls
+- **Network Security**: VPN access for remote operations
+- **Data Protection**: Regular backups and secure file handling
 
 ## 🤝 Contributing
 
@@ -178,15 +323,17 @@ This project is licensed under the GNU General Public License (GPL) - see the LI
 
 ## 🙏 Acknowledgments
 
-- **PaddleOCR**: High-performance OCR engine
-- **Azure OpenAI**: Advanced language model capabilities
-- **Pydantic**: Data validation and settings management
-- **pdf2image**: PDF to image conversion utilities
+- **PaddleOCR**: High-performance OCR engine for document processing
+- **OpenAI**: Advanced language model capabilities for data extraction
+- **Dash & Plotly**: Interactive web application framework
+- **FME (Safe Software)**: Spatial data processing and minimum curvature calculations
+- **ArcGIS (Esri)**: GIS platform integration for spatial analysis
 
 ## 📞 Support
 
-For questions, issues, or contributions, please open an issue on the GitHub repository or contact the development team.
+For questions, issues, or contributions, please open an issue on the GitHub repository.
 
 ---
 
-Built with ❤️ for the oil and gas industry
+**WellTrajectoryAI** - Transforming directional survey documents into actionable spatial data for the petroleum industry 🛢️⚡
+

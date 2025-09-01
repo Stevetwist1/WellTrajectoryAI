@@ -687,7 +687,7 @@ def download_csv(n_clicks, survey):
     # Define the desired column order
     desired_columns = ["md", "inc", "azi", "tvd", "ns", "ew"]
     
-    # Reorder columns, keeping only the ones that exist
+
     existing_columns = [col for col in desired_columns if col in df.columns]
     # Add any additional columns not in the desired order
     other_columns = [col for col in df.columns if col not in desired_columns]
