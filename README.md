@@ -2,7 +2,7 @@
 
 A sophisticated OCR and AI-powered directional survey processing system for extracting structured data from petroleum industry survey documents. WellTrajectoryAI combines advanced computer vision (PaddleOCR) with large language models to automatically extract directional survey data from PDF documents and generate well trajectory visualizations through automated FME integration.
 
-## 🌟 Features
+##  Features
 
 - **Interactive Web Interface**: Modern Dash-based web application with Bootstrap UI for document processing and data validation
 - **Advanced OCR Processing**: Uses PaddleOCR with GPU acceleration for high-accuracy text detection and recognition from survey documents
@@ -14,7 +14,7 @@ A sophisticated OCR and AI-powered directional survey processing system for extr
 - **ArcGIS Integration**: Direct export to ArcGIS geodatabase for spatial analysis and visualization
 - **Cross-Platform Workflow**: Linux-based processing with Windows FME integration via network shared folders
 
-## 🚀 Quick Start
+##  Quick Start
 
 ### Prerequisites
 
@@ -106,7 +106,7 @@ python app.py
    - **Download CSV**: CSV export with automatic FME processing
    - **Write to ArcGIS GDB**: Direct geodatabase integration
 
-## 📊 Data Extraction
+##  Data Extraction
 
 WellTrajectoryAI extracts comprehensive directional survey data:
 
@@ -158,7 +158,7 @@ WellTrajectoryAI extracts comprehensive directional survey data:
 }
 ```
 
-## 🔧 Technical Architecture
+##  Technical Architecture
 
 ### Web Application Stack
 - **Frontend**: Dash with Bootstrap Components
@@ -190,7 +190,7 @@ OCR_MODEL = PaddleOCR(
 )
 ```
 
-## 🎯 Workflow Integration
+##  Workflow Integration
 
 ### Automated FME Processing
 1. **CSV Export**: Survey data saved as `latest_directional_survey.csv`
@@ -212,7 +212,7 @@ set "FME_WORKBENCH=\\server\share\operator_survey_line.fmw"
 - **Spatial Integration**: Coordinate system handling and projection
 - **Visualization Ready**: Compatible with ArcGIS Pro and Portal
 
-## 📁 Project Structure
+##  Project Structure
 
 ```
 WellTrajectoryAI/
@@ -232,16 +232,16 @@ WellTrajectoryAI/
 └── README.md               # This documentation
 ```
 
-## 🖥️ User Interface
+##  User Interface
 
 ### Main Features
-- **📂 PDF Upload**: Drag-and-drop interface with file validation
-- **🖼️ Page Preview**: Visual thumbnails with selection controls
-- **⚙️ Processing Controls**: Real-time OCR and AI processing
-- **📝 Data Forms**: Interactive metadata editing and validation
-- **📊 Data Tables**: Editable survey point tables with sorting
-- **💾 Export Options**: Multiple format downloads and integrations
-- **🔄 Real-time Feedback**: Progress indicators and status messages
+- ** PDF Upload**: Drag-and-drop interface with file validation
+- ** Page Preview**: Visual thumbnails with selection controls
+- ** Processing Controls**: Real-time OCR and AI processing
+- ** Data Forms**: Interactive metadata editing and validation
+- ** Data Tables**: Editable survey point tables with sorting
+- ** Export Options**: Multiple format downloads and integrations
+- ** Real-time Feedback**: Progress indicators and status messages
 
 ### Responsive Design
 - **Bootstrap Components**: Modern, mobile-friendly interface
@@ -249,7 +249,7 @@ WellTrajectoryAI/
 - **Data Visualization**: Sortable tables with pagination
 - **Form Validation**: Real-time input validation and error handling
 
-## 🔍 Debugging and Troubleshooting
+##  Debugging and Troubleshooting
 
 ### Common Issues
 
@@ -294,7 +294,7 @@ The system generates:
 - **Data Validation**: Interactive forms with error highlighting
 - **Export Confirmation**: Success/failure notifications with detailed messages
 
-## 🚀 Deployment
+##  Deployment
 
 ### Production Setup
 1. **Server Configuration**: Linux server with GPU support
@@ -308,7 +308,7 @@ The system generates:
 - **Network Security**: VPN access for remote operations
 - **Data Protection**: Regular backups and secure file handling
 
-## 🤝 Contributing
+##  Contributing
 
 1. Fork the repository
 2. Create a feature branch: `git checkout -b feature-name`
@@ -317,11 +317,11 @@ The system generates:
 5. Push to the branch: `git push origin feature-name`
 6. Submit a pull request
 
-## 📄 License
+##  License
 
 This project is licensed under the GNU General Public License (GPL) - see the LICENSE file for details.
 
-## 🙏 Acknowledgments
+##  Acknowledgments
 
 - **PaddleOCR**: High-performance OCR engine for document processing
 - **OpenAI**: Advanced language model capabilities for data extraction
@@ -329,11 +329,11 @@ This project is licensed under the GNU General Public License (GPL) - see the LI
 - **FME (Safe Software)**: Spatial data processing and minimum curvature calculations
 - **ArcGIS (Esri)**: GIS platform integration for spatial analysis
 
-## 📞 Support
+##  Support
 
 For questions, issues, or contributions, please open an issue on the GitHub repository.
 
 ---
 
-**WellTrajectoryAI** - Transforming directional survey documents into actionable spatial data for the petroleum industry 🛢️⚡
+**WellTrajectoryAI** - Transforming directional survey documents into actionable spatial data for the petroleum industry 
 
