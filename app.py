@@ -256,7 +256,7 @@ pdf_extraction_layout = dbc.Container(fluid=True, children=[
     html.Hr(),
     dbc.Row([
         dbc.Col([
-            dbc.Button("Download JSON", id="download-btn", color="success", className="me-2")
+            dbc.Button("Download CSV", id="download-btn", color="success", className="me-2")
         ], width="auto"),
         dbc.Col([
             dbc.Button("Load FME Workbench", id="download-csv-btn", color="warning", className="me-2")
@@ -647,23 +647,73 @@ app.clientside_callback(
 )
 
 
-# 6) Download JSON
+# 6) Download CSV
 @app.callback(
-    Output("download-json", "data"),
+    Output("download-csv", "data"),
     Input("download-btn", "n_clicks"),
     State("survey-store", "data"),
     prevent_initial_call=True,
     allow_duplicate=True
 )
-def download_json(n, survey):
+def download_csv_direct(n, survey):
+    if not survey:
+        return no_update
+    
+    # Create DataFrame with survey points in specified order
+    survey_points = survey.get("survey_points", [])
+    if not survey_points:
+        return no_update
+    
+    # Convert to DataFrame and reorder columns as specified: md, inc, azi, tvd, ns, ew
+    df = pd.DataFrame(survey_points)
+    
+    # Define the desired column order
+    desired_columns = ["md", "inc", "azi", "tvd", "ns", "ew"]
+    
+    # Reorder columns, keeping only the ones that exist
+    existing_columns = [col for col in desired_columns if col in df.columns]
+    # Add any additional columns not in the desired order
+    other_columns = [col for col in df.columns if col not in desired_columns]
+    final_columns = existing_columns + other_columns
+    
+    if existing_columns:
+        df = df[final_columns]
+    
+    # Add UWI as the first column
+    uwi_value = survey.get("uwi", "")
+    df.insert(0, "uwi", uwi_value)
+    
+    # Add other metadata columns after survey data
+    metadata_fields = [
+        "operator", "vendor", "lease_location", "county", "contact_info",
+        "map_zone", "map_system", "geo_datum", "system_datum",
+        "shl_x", "shl_y", "datum_elevation", "ground_level_elevation", 
+        "job_number", "date_created"
+    ]
+    
+    # Add metadata as columns (repeat for each row)
+    for field in metadata_fields:
+        value = survey.get(field, "")
+        df[field] = value
+    
+    # Convert DataFrame to CSV
+    csv_content = df.to_csv(index=False)
+    
+    # Generate timestamped filename for browser download
+    import datetime
+    timestamp = datetime.datetime.now().strftime("%Y%m%d_%H%M%S")
+    uwi = survey.get("uwi", "survey")
+    safe_uwi = uwi.replace("/", "_").replace("\\", "_").replace(" ", "_") if uwi else "survey"
+    filename = f"directional_survey_{safe_uwi}_{timestamp}.csv"
+    
     return dict(
-      content=json.dumps(survey, indent=2),
-      filename="directional_survey.json"
+        content=csv_content,
+        filename=filename
     )
 
 # 6b) Download CSV - Save to shared folder for FME processing
 @app.callback(
-    [Output("download-csv", "data"),
+    [Output("download-csv", "data", allow_duplicate=True),
      Output("arcgis-status", "children", allow_duplicate=True),
      Output("toast-container", "children", allow_duplicate=True)],
     Input("download-csv-btn", "n_clicks"),

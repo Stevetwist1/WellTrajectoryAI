@@ -1,0 +1,145 @@
+# azure-pipelines.yml
+trigger:
+  branches:
+    include:
+      - main
+
+stages:
+- stage: Deploy
+  displayName: Deploy WellTrajectoryAI to Hamster
+  jobs:
+  - deployment: DeployToHamster
+    displayName: 'Deploy WellTrajectoryAI to Hamster'
+    pool:
+      name: ULH-Self-Hosted
+      demands:
+        - Agent.Name -equals UlhChatHampster
+        - Agent.OS -equals Linux
+    environment: 'UlhChatHampster'
+
+    strategy:
+      runOnce:
+        deploy:
+          steps:
+          - checkout: self
+
+          # Sanity check
+          - bash: |
+              echo "Agent.Name=$(Agent.Name)"
+              echo "Build.SourcesDirectory=$(Build.SourcesDirectory)"
+              echo "Top-level repo contents:"
+              ls -la "$(Build.SourcesDirectory)"
+            displayName: 'Sanity: agent & repo'
+
+          # Download secure .env file
+          - task: DownloadSecureFile@1
+            inputs:
+              secureFile: '.env'
+
+          - task: CopyFiles@2
+            inputs:
+              SourceFolder: '$(Agent.TempDirectory)'
+              Contents: '.env'
+              TargetFolder: '$(Build.SourcesDirectory)'
+
+          # Sync code to deployment directory
+          - bash: |
+              set -euo pipefail
+              SRC_ROOT="$(Build.SourcesDirectory)"
+              DEST="/opt/welltrajectoryai/app"
+
+              # Sync whole repo to the app dir as deploy user
+              sudo -u deploy mkdir -p "$DEST"
+              sudo -u deploy rsync -a --delete "$SRC_ROOT"/ "$DEST"/
+
+              # Ensure docker-compose.yml exists (we create it in compose dir)
+              if [ ! -f "$DEST/Dockerfile" ]; then
+                echo "ERROR: missing Dockerfile in repo root"
+                exit 1
+              fi
+
+              # Copy .env file to app directory
+              sudo -u deploy cp "$SRC_ROOT/.env" "$DEST/.env"
+              sudo -u deploy chmod 640 "$DEST/.env"
+
+              echo "Synced application files:"
+              sudo -u deploy find "$DEST" -maxdepth 2 -type f | head -20
+            displayName: 'Sync application files'
+
+          # Build and set image tag
+          - bash: |
+              set -xeuo pipefail
+              sudo -u deploy bash -c '
+                export XDG_RUNTIME_DIR="/run/user/$(id -u)"
+                export DOCKER_HOST="unix://$XDG_RUNTIME_DIR/docker.sock"
+                cd /opt/welltrajectoryai/app
+
+                # Set image tag
+                TAG="${BUILD_SOURCEVERSION:-$(date +%s)}"
+                echo "IMAGE_TAG=$TAG" >> .env
+                
+                # Get host IP for shared folder access
+                HOST_IP=$(hostname -I | awk "{print \$1}")
+                echo "HOST_IP=$HOST_IP" >> .env
+                
+                echo "Environment variables:"
+                cat .env
+
+                # Copy updated .env to compose directory
+                cp .env ../compose/.env
+                
+                # Build the image from the compose directory
+                cd ../compose
+                docker compose build --pull
+              '
+            displayName: 'Build Docker image'
+
+          # Restart the service
+          - bash: |
+              set -exuo pipefail
+              # Restart the service as deploy user
+              sudo -u deploy bash -c '
+                export XDG_RUNTIME_DIR="/run/user/$(id -u)"
+                export DBUS_SESSION_BUS_ADDRESS="unix:path=$XDG_RUNTIME_DIR/bus"
+                
+                systemctl --user daemon-reload
+                systemctl --user restart welltrajectoryai
+                sleep 5
+                systemctl --user --no-pager status welltrajectoryai
+              '
+            displayName: 'Deploy and restart service'
+
+          # Check deployment status
+          - bash: |
+              set -exuo pipefail
+              sudo -u deploy bash -c '
+                export XDG_RUNTIME_DIR="/run/user/$(id -u)"
+                export DOCKER_HOST="unix://$XDG_RUNTIME_DIR/docker.sock"
+                
+                echo "==== Service Status ===="
+                systemctl --user --no-pager status welltrajectoryai || true
+                
+                echo "==== Docker Containers ===="
+                docker ps || true
+                
+                echo "==== Recent Logs ===="
+                journalctl --user -u welltrajectoryai -n 50 --no-pager || true
+              '
+            displayName: 'Check deployment status'
+            condition: always()
+
+          # Health check
+          - bash: |
+              echo "Waiting for application to start..."
+              for i in {1..30}; do
+                if curl -f http://127.0.0.1:8050/ > /dev/null 2>&1; then
+                  echo "✅ Application is responding on port 8050"
+                  echo "✅ Application should be available at: https://directionalsurvey.ulhchathamster.utsystem.local"
+                  exit 0
+                fi
+                echo "Attempt $i/30 - waiting..."
+                sleep 10
+              done
+              echo "❌ Application failed to respond after 5 minutes"
+              exit 1
+            displayName: 'Health check'
