@@ -1,0 +1,13 @@
+[0;1;32m●[0m welltrajectoryai.service - welltrajectoryai (rootless docker compose)
+     Loaded: loaded (]8;;file://UlhChatHampster/home/steve/.config/systemd/user/welltrajectoryai.service/home/steve/.config/systemd/user/welltrajectoryai.service]8;;; [0;1;32menabled[0m; preset: [0;1;32menabled[0m)
+     Active: [0;1;32mactive (running)[0m since Mon 2025-10-27 21:40:23 UTC; 13ms ago
+   Main PID: 40823 (sh)
+      Tasks: 2 (limit: 154128)
+     Memory: 1.2M (peak: 1.4M)
+        CPU: 13ms
+     CGroup: /user.slice/user-1002.slice/user@1002.service/app.slice/welltrajectoryai.service
+             ├─[0;38;5;245m40823 /bin/sh -lc "docker compose pull && docker compose up -d"[0m
+             └─[0;38;5;245m40833 docker compose pull[0m
+
+Oct 27 21:40:23 UlhChatHampster systemd[21574]: Starting welltrajectoryai.service - welltrajectoryai (rootless docker compose)...
+Oct 27 21:40:23 UlhChatHampster systemd[21574]: Started welltrajectoryai.service - welltrajectoryai (rootless docker compose).

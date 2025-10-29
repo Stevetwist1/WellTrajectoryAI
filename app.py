@@ -1,4 +1,23 @@
-# dash_app.py
+# --- LangChain compatibility patch for PaddleX / PaddleOCR ---
+import sys
+
+try:
+    # Modern LangChain (1.x) moved modules around
+    # 1. Document moved to langchain_core.documents
+    import langchain_core.documents as lcd
+    sys.modules["langchain.docstore.document"] = lcd
+    
+    # 2. Text splitters moved to langchain_text_splitters  
+    import langchain_text_splitters as lts
+    sys.modules["langchain.text_splitter"] = lts
+
+    print("[Compat Patch] langchain compatibility shims installed")
+except Exception as e:
+    # Don't kill the app if something unexpected happens
+    print("[Compat Patch] Could not install shims:", e)
+
+
+# app.py
 import os, io, base64, json, tempfile
 import pandas as pd
 from main import extract_and_merge_survey, extract_selected_pages_survey
