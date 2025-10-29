@@ -1,3 +1,21 @@
+# LangChain compatibility patch for PaddleOCR/PaddleX dependencies
+# Must be installed before importing PaddleOCR to handle import redirection
+import sys
+try:
+    import langchain_text_splitters
+    # Create module alias to maintain compatibility with legacy import paths
+    sys.modules["langchain.text_splitter"] = langchain_text_splitters
+    print("[Compat Patch] langchain.text_splitter shim installed in main.py")
+except ImportError:
+    print("[Compat Patch] langchain-text-splitters not available, skipping text_splitter shim")
+
+try:
+    from langchain_core import documents
+    sys.modules["langchain.docstore.document"] = documents
+    print("[Compat Patch] langchain.docstore.document shim installed in main.py")
+except ImportError:
+    print("[Compat Patch] langchain-core not available, skipping docstore.document shim")
+
 import cv2
 import numpy as np
 import os
