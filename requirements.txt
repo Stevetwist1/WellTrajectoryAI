@@ -1,19 +1,28 @@
-opencv-python-headless 
-pdf2image 
-pytesseract 
-scikit-learn 
+# Core dependencies
+opencv-python-headless
+pdf2image
+pytesseract
+scikit-learn
 openai
 requests
 python-dotenv
-#pip install paddlepaddle-gpu==3.0.0 \
-#-i https://www.paddlepaddle.org.cn/packages/stable/cu118/
-#pip install paddleocr
+pandas
+numpy
 
+# Dash web framework
+dash
+dash-bootstrap-components
 
+# OCR and AI dependencies
+paddleocr
+paddlepaddle-gpu
+langchain
+langchain-text-splitters
 
+# Document processing
 docling
 pdfplumber
 pillow
 
-paddleocr
-paddlepaddle-gpu
+# Data models
+pydantic
