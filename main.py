@@ -30,8 +30,10 @@ from PIL import Image
 load_dotenv()
 
 # Initialize PaddleOCR with layout analysis (structure parsing)
+# Force CPU mode since no GPU is available
 OCR_MODEL = PaddleOCR(
-    device="gpu" if os.path.exists("/usr/bin/nvidia-smi") else "cpu",  # Auto-detect GPU
+    use_gpu=False,  # Explicitly disable GPU
+    device="cpu",   # Force CPU device
     lang="en",
     use_textline_orientation=False,
     use_doc_orientation_classify=False,

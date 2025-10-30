@@ -5,5 +5,5 @@ services:
     image: welltrajectoryai:${IMAGE_TAG:-dev}
     env_file: .env
     ports:
-      - "127.0.0.1:8050:8050"
+      - "8050:8050"
     restart: unless-stopped

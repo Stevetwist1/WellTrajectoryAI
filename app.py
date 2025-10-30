@@ -4,17 +4,19 @@ import sys
 try:
     # Modern LangChain (1.x) moved modules around
     # 1. Document moved to langchain_core.documents
-    import langchain_core.documents as lcd
-    sys.modules["langchain.docstore.document"] = lcd
+    import langchain_core.documents
+    sys.modules["langchain.docstore.document"] = langchain_core.documents
     
-    # 2. Text splitters moved to langchain_text_splitters  
-    import langchain_text_splitters as lts
-    sys.modules["langchain.text_splitter"] = lts
+    # 2. Text splitters moved to langchain_text_splitters
+    import langchain_text_splitters
+    sys.modules["langchain.text_splitter"] = langchain_text_splitters
 
     print("[Compat Patch] langchain compatibility shims installed")
-except Exception as e:
+except ImportError as e:
     # Don't kill the app if something unexpected happens
-    print("[Compat Patch] Could not install shims:", e)
+    print(f"[Compat Patch] Could not install shim: {e}")
+except Exception as e:
+    print(f"[Compat Patch] Unexpected error installing shims: {e}")
 
 
 # app.py
